@@ -23,6 +23,7 @@
     
     NSString *phoneNumber = call.arguments[@"phone_number"];
     NSString *isoCode = call.arguments[@"iso_code"];
+    NSString *formatEnumString = call.arguments[@"format"];
     NBPhoneNumber *number = nil;
 
     // Call formatAsYouType before parse below because a partial number will not be parsable.
@@ -73,12 +74,48 @@
                  @"regionCode": countryCode == nil ? @"" : [countryCode stringValue],
                  @"formattedPhoneNumber": formattedNumber == nil ? @"" : formattedNumber,
                  });
+    } else if([@"getExampleNumber" isEqualToString:call.method]) {
+         NBPhoneNumber *exampleNumber = [self.phoneUtil getExampleNumber:isoCode error:&err];
+         NSString *regionCode = [self.phoneUtil getRegionCodeForNumber:exampleNumber];
+         NSString *formattedNumber = [self.phoneUtil format:exampleNumber
+                                                       numberFormat:NBEPhoneNumberFormatNATIONAL
+                                                              error:&err];
+         if (err != nil ) {
+             result([FlutterError errorWithCode:@"invalid_national_number"
+                                        message:@"Invalid phone number for the country specified"
+                                        details:nil]);
+             return;
+         }
+
+         result(@{
+                  @"isoCode": regionCode == nil ? @"" : regionCode,
+                  @"formattedPhoneNumber": formattedNumber == nil ? @"" : formattedNumber,
+                  });
     } else if ([@"getNumberType" isEqualToString:call.method]) {
         NSNumber *numberType = [NSNumber numberWithInteger:[self.phoneUtil getNumberType:number]];
         result(numberType);
-    } else if([@"getNameForNumber" isEqualToString:call.method]) {
+    } else if ([@"getNameForNumber" isEqualToString:call.method]) {
         NSString *name = @"";
         result(name);
+    } else if ([@"format" isEqualToString:call.method]) {
+        NSString *formattedNumber;
+        if ([@"NATIONAL" isEqualToString:formatEnumString]) {
+            formattedNumber = [self.phoneUtil format:number numberFormat:NBEPhoneNumberFormatNATIONAL error:&err];
+        } else if([@"INTERNATIONAL" isEqualToString:formatEnumString]) {
+            formattedNumber = [self.phoneUtil format:number numberFormat:NBEPhoneNumberFormatINTERNATIONAL error:&err];
+        } else if([@"E164" isEqualToString:formatEnumString]) {
+            formattedNumber = [self.phoneUtil format:number numberFormat:NBEPhoneNumberFormatE164 error:&err];
+        } else if([@"RFC3966" isEqualToString:formatEnumString]) {
+            formattedNumber = [self.phoneUtil format:number numberFormat:NBEPhoneNumberFormatRFC3966 error:&err];
+        }
+
+        if (err != nil ) {
+            result([FlutterError errorWithCode:[NSString stringWithFormat:@"Error %ld", err.code]
+                                       message:err.domain
+                                       details:err.localizedDescription]);
+            return;
+        }
+        result(formattedNumber);
     } else {
         result(FlutterMethodNotImplemented);
     }
