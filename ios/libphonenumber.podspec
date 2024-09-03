@@ -16,6 +16,7 @@ Simple implementation of libphonenumber
   s.public_header_files = 'Classes/**/*.h'
   s.dependency 'Flutter'
   s.dependency 'libPhoneNumber-iOS'
+  s.dependency "PhoneNumberKit/PhoneNumberKitCore", "3.8.0"
   
   s.ios.deployment_target = '8.0'
 end
