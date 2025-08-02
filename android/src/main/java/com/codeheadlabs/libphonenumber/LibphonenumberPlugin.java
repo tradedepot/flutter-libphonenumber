@@ -7,7 +7,6 @@ import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
-import io.flutter.plugin.common.PluginRegistry.Registrar;
 
 import com.google.i18n.phonenumbers.AsYouTypeFormatter;
 import com.google.i18n.phonenumbers.NumberParseException;
@@ -23,21 +22,17 @@ import java.util.Map;
 public class LibphonenumberPlugin implements MethodCallHandler, FlutterPlugin {
   private static PhoneNumberUtil phoneUtil = PhoneNumberUtil.getInstance();
   private static PhoneNumberToCarrierMapper phoneNumberToCarrierMapper = PhoneNumberToCarrierMapper.getInstance();
+  private MethodChannel channel;
 
   @Override
   public void onAttachedToEngine(@NonNull FlutterPluginBinding binding) {
-    final MethodChannel channel = new MethodChannel(binding.getBinaryMessenger(), "codeheadlabs.com/libphonenumber");
-    channel.setMethodCallHandler(new LibphonenumberPlugin());
+    channel = new MethodChannel(binding.getBinaryMessenger(), "codeheadlabs.com/libphonenumber");
+    channel.setMethodCallHandler(this);
   }
 
   @Override
   public void onDetachedFromEngine(@NonNull FlutterPluginBinding binding) {
-  }
-
-  /** Keeping around to support older apps that aren't using v2 Android embedding */
-  public static void registerWith(Registrar registrar) {
-    final MethodChannel channel = new MethodChannel(registrar.messenger(), "codeheadlabs.com/libphonenumber");
-    channel.setMethodCallHandler(new LibphonenumberPlugin());
+    channel.setMethodCallHandler(null);
   }
 
   @Override
